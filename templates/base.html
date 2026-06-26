@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerAI — {% block title %}Dashboard{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🧭</div>
+    <div class="brand-name">CareerAI</div>
+    <div class="brand-sub">Your Career Navigator</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Main Menu</div>
+    <div class="nav-item">
+      <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'quiz' %}" class="nav-link {% if 'quiz' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-clipboard-check"></i> Career Assessment
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'skill_gap' %}" class="nav-link {% if request.resolver_match.url_name == 'skill_gap' %}active{% endif %}">
+        <i class="bi bi-graph-up-arrow"></i> Skill Gap Analyzer
+      </a>
+    </div>
+
+    <div class="sidebar-section-label">Tools</div>
+    <div class="nav-item">
+      <a href="{% url 'upload_resume' %}" class="nav-link {% if 'resume' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-file-earmark-person"></i> Resume Analyzer
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'chatbot' %}" class="nav-link {% if request.resolver_match.url_name == 'chatbot' %}active{% endif %}">
+        <i class="bi bi-chat-dots"></i> AI Chatbot
+      </a>
+    </div>
+
+    <div class="sidebar-section-label">Account</div>
+    <div class="nav-item">
+      <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <i class="bi bi-person-circle"></i> My Profile
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'logout' %}" class="nav-link">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="{% url 'profile' %}" class="sidebar-user">
+      <div class="avatar">
+        {% if request.user.profile_pic %}
+          <img src="{{ request.user.profile_pic.url }}" alt="Avatar">
+        {% else %}
+          {{ request.user.first_name|first|upper|default:request.user.username|first|upper }}
+        {% endif %}
+      </div>
+      <div class="user-info">
+        <span class="name">{{ request.user.get_full_name|default:request.user.username }}</span>
+        <span class="role">{{ request.user.desired_career|default:"Member" }}</span>
+      </div>
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="topbar-btn d-lg-none" id="sidebarToggle">
+      <i class="bi bi-list"></i>
+    </button>
+    <div class="topbar-title">{% block page_title %}<span>Dashboard</span>{% endblock %}</div>
+    <div class="topbar-right">
+      <a href="{% url 'chatbot' %}" class="topbar-btn" title="AI Chat">
+        <i class="bi bi-chat-dots"></i>
+      </a>
+      <a href="{% url 'profile' %}" class="topbar-btn" title="Profile">
+        <i class="bi bi-person"></i>
+      </a>
+      <a href="{% url 'logout' %}" class="topbar-btn" title="Logout">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
+    </div>
+  </header>
+
+  <!-- MESSAGES -->
+  {% if messages %}
+  <div style="padding: 12px 28px 0;">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible" role="alert">
+      <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- PAGE CONTENT -->
+  <main class="page-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Sidebar toggle for mobile
+  document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+  // Auto-dismiss alerts
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(a => {
+      bootstrap.Alert.getOrCreateInstance(a)?.close();
+    });
+  }, 5000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

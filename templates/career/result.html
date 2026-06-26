@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Your Career Results{% endblock %}
+{% block page_title %}Career <span>Results</span>{% endblock %}
+{% block content %}
+
+<div class="page-header fade-up">
+  <div>
+    <h2>Your Personalized Career Report</h2>
+    <p style="color:#64748b;font-size:14px;margin-top:4px;">Generated on {{ result.created_at|date:"F d, Y" }}</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'quiz' %}" class="btn btn-light"><i class="bi bi-arrow-repeat"></i> Retake Quiz</a>
+    <a href="{% url 'skill_gap' %}" class="btn btn-primary"><i class="bi bi-graph-up-arrow"></i> Analyze Skill Gap</a>
+  </div>
+</div>
+
+<!-- TOP RECOMMENDATIONS -->
+<div class="row g-4 mb-4">
+  {% for career in career_details %}
+  <div class="col-lg-6 fade-up fade-up-{{ forloop.counter }}">
+    <div class="career-card {% if forloop.first %}border-primary{% endif %}">
+      {% if forloop.first %}<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#2563eb,#7c3aed);"></div>{% endif %}
+      <div class="career-rank">#{{ forloop.counter }}</div>
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#dbeafe,#ede9fe);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">
+          <i class="bi {{ career.icon|default:'bi-briefcase' }}" style="color:#2563eb;"></i>
+        </div>
+        <div style="flex:1;">
+          <h5 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px;">{{ career.name }}</h5>
+          <p style="color:#64748b;font-size:13px;margin-bottom:10px;">{{ career.description }}</p>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            {% if career.avg_salary %}
+            <span style="font-size:12px;font-weight:600;color:#10b981;"><i class="bi bi-currency-dollar"></i> {{ career.avg_salary }}</span>
+            {% endif %}
+            {% if career.growth %}
+            <span style="font-size:12px;font-weight:600;color:#2563eb;"><i class="bi bi-trending-up"></i> {{ career.growth }} growth</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% if career.skills %}
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9;">
+        <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Required Skills</div>
+        {% for skill in career.skills|slice:":6" %}
+          <span class="skill-tag">{{ skill }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <!-- SCORE BREAKDOWN -->
+  <div class="col-lg-5 fade-up fade-up-1">
+    <div class="card">
+      <div class="card-header"><h5>📊 Assessment Score Breakdown</h5></div>
+      <div class="card-body">
+        {% for cat, pct in score_percentages.items %}
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-size:13px;font-weight:600;text-transform:capitalize;">
+              {% if cat == 'tech' %}💻 Technology
+              {% elif cat == 'data' %}📊 Data & Analytics
+              {% elif cat == 'creative' %}🎨 Creative & Design
+              {% elif cat == 'social' %}🤝 Social & People
+              {% elif cat == 'business' %}💼 Business & Management
+              {% elif cat == 'science' %}🔬 Science & Research
+              {% elif cat == 'security' %}🛡️ Security
+              {% elif cat == 'cloud' %}☁️ Cloud & Infrastructure
+              {% else %}{{ cat }}{% endif %}
+            </span>
+            <span style="font-size:12px;color:#64748b;">{{ pct }}%</span>
+          </div>
+          <div class="progress" style="height:10px;">
+            <div class="progress-bar" style="width:{{ pct }}%;background:linear-gradient(90deg,
+              {% if forloop.counter == 1 %}#2563eb,#4f46e5
+              {% elif forloop.counter == 2 %}#10b981,#06b6d4
+              {% elif forloop.counter == 3 %}#f59e0b,#ef4444
+              {% elif forloop.counter == 4 %}#7c3aed,#ec4899
+              {% else %}#64748b,#94a3b8{% endif %});"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- AI ADVICE -->
+  <div class="col-lg-7 fade-up fade-up-2">
+    <div class="card">
+      <div class="card-header">
+        <h5>🤖 AI Career Counselor Advice</h5>
+        <span class="badge badge-purple">Powered by GPT</span>
+      </div>
+      <div class="card-body">
+        {% if result.ai_advice %}
+        <div style="font-size:14px;line-height:1.8;color:#334155;white-space:pre-line;">{{ result.ai_advice }}</div>
+        {% else %}
+        <div class="empty-state">
+          <i class="bi bi-cpu"></i>
+          <p>Add your OpenAI API key to get personalized AI advice.</p>
+        </div>
+        {% endif %}
+        <div class="divider"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="{% url 'skill_gap' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-graph-up-arrow"></i> Check Skill Gap
+          </a>
+          <a href="{% url 'upload_resume' %}" class="btn btn-light btn-sm">
+            <i class="bi bi-file-earmark-person"></i> Analyze Resume
+          </a>
+          <a href="{% url 'chatbot' %}" class="btn btn-light btn-sm">
+            <i class="bi bi-chat-dots"></i> Ask AI Advisor
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

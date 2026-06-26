@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block title %}Skill Gap Analyzer{% endblock %}
+{% block page_title %}Skill Gap <span>Analyzer</span>{% endblock %}
+{% block content %}
+
+<div class="page-header fade-up">
+  <div>
+    <h2>Skill Gap Analyzer</h2>
+    <p style="color:#64748b;font-size:14px;margin-top:4px;">Discover exactly which skills you need to land your dream job</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card fade-up fade-up-1 sticky-top" style="top:80px;">
+      <div class="card-header"><h5>🔍 Analyze Skills</h5></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">Target Career</label>
+            <select name="target_career" class="form-select" required>
+              <option value="">-- Select a career --</option>
+              {% for career in all_careers %}
+                <option value="{{ career }}" {% if analysis and analysis.target_career == career %}selected{% endif %}>{{ career }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Your Current Skills
+              <small style="color:#94a3b8;">(comma-separated)</small>
+            </label>
+            <textarea name="user_skills" class="form-control" rows="4"
+              placeholder="Python, Django, SQL, JavaScript...">{{ user_skills }}</textarea>
+            <div style="font-size:11px;color:#94a3b8;margin-top:4px;">
+              <i class="bi bi-lightbulb"></i> Tip: Be specific — list tools, languages, frameworks
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-search"></i> Analyze My Skills
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {% if history %}
+    <div class="card mt-4 fade-up fade-up-2">
+      <div class="card-header"><h6>📋 Recent Analyses</h6></div>
+      <div class="card-body" style="padding:12px;">
+        {% for item in history %}
+        <div style="padding:10px;border-radius:8px;background:#f8fafc;margin-bottom:8px;">
+          <div style="font-weight:700;font-size:13px;color:#0f172a;">{{ item.target_career }}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+            <div class="progress" style="flex:1;margin-right:10px;height:6px;">
+              <div class="progress-bar" style="width:{{ item.match_percentage }}%;background:{% if item.match_percentage >= 70 %}#10b981{% elif item.match_percentage >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+            </div>
+            <span style="font-size:12px;font-weight:700;color:{% if item.match_percentage >= 70 %}#10b981{% elif item.match_percentage >= 40 %}#f59e0b{% else %}#ef4444{% endif %};">{{ item.match_percentage }}%</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    {% if analysis %}
+    <!-- MATCH SCORE -->
+    <div class="card mb-4 fade-up fade-up-1">
+      <div class="card-body" style="padding:28px;">
+        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <div style="position:relative;width:110px;height:110px;margin:0 auto;">
+              <svg viewBox="0 0 100 100" width="110" height="110" style="transform:rotate(-90deg);">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#f1f5f9" stroke-width="10"/>
+                <circle cx="50" cy="50" r="40" fill="none"
+                  stroke="{% if analysis.match_percentage >= 70 %}#10b981{% elif analysis.match_percentage >= 40 %}#f59e0b{% else %}#ef4444{% endif %}"
+                  stroke-width="10"
+                  stroke-dasharray="{{ analysis.match_percentage|floatformat:0 }} 100"
+                  stroke-dashoffset="0" stroke-linecap="round"
+                  style="transition:stroke-dasharray 1.5s ease;"/>
+              </svg>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:{% if analysis.match_percentage >= 70 %}#10b981{% elif analysis.match_percentage >= 40 %}#f59e0b{% else %}#ef4444{% endif %};">
+                {{ analysis.match_percentage }}%
+              </div>
+            </div>
+            <div style="font-size:12px;color:#64748b;margin-top:6px;">Match Score</div>
+          </div>
+          <div style="flex:1;">
+            <h4 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;">{{ analysis.target_career }}</h4>
+            <p style="color:#64748b;font-size:14px;margin-bottom:12px;">{{ analysis.career_info.description }}</p>
+            <div style="display:flex;gap:20px;flex-wrap:wrap;">
+              <div>
+                <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#10b981;">{{ analysis.matched_skills|length }}</div>
+                <div style="font-size:11px;color:#64748b;">Skills Matched</div>
+              </div>
+              <div>
+                <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#ef4444;">{{ analysis.missing_skills|length }}</div>
+                <div style="font-size:11px;color:#64748b;">Skills Missing</div>
+              </div>
+              {% if analysis.career_info.avg_salary %}
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#10b981;">{{ analysis.career_info.avg_salary }}</div>
+                <div style="font-size:11px;color:#64748b;">Avg. Salary</div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- MATCHED SKILLS -->
+      <div class="col-md-6">
+        <div class="card fade-up fade-up-2">
+          <div class="card-header">
+            <h6>✅ Skills You Have ({{ analysis.matched_skills|length }})</h6>
+          </div>
+          <div class="card-body">
+            {% if analysis.matched_skills %}
+              {% for skill in analysis.matched_skills %}
+                <span class="skill-tag matched"><i class="bi bi-check"></i> {{ skill }}</span>
+              {% endfor %}
+            {% else %}
+              <p style="color:#94a3b8;font-size:13px;">No matching skills found. Start building your profile!</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <!-- MISSING SKILLS -->
+      <div class="col-md-6">
+        <div class="card fade-up fade-up-3">
+          <div class="card-header">
+            <h6>❌ Skills You Need ({{ analysis.missing_skills|length }})</h6>
+          </div>
+          <div class="card-body">
+            {% if analysis.missing_skills %}
+              {% for skill in analysis.missing_skills %}
+                <span class="skill-tag missing"><i class="bi bi-x"></i> {{ skill }}</span>
+              {% endfor %}
+            {% else %}
+              <p style="color:#10b981;font-size:13px;font-weight:600;">🎉 You have all required skills!</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COURSES -->
+    {% if analysis.courses_suggested %}
+    <div class="card mt-4 fade-up fade-up-4">
+      <div class="card-header"><h5>📚 Recommended Courses to Close Gaps</h5></div>
+      <div class="card-body" style="padding:16px;">
+        {% for course in analysis.courses_suggested %}
+        <div style="display:flex;align-items:center;gap:16px;padding:14px;border-radius:10px;border:1.5px solid #f1f5f9;margin-bottom:10px;transition:all 0.2s;" class="course-item">
+          <div style="width:42px;height:42px;border-radius:10px;background:{% if course.free %}#d1fae5{% else %}#fef3c7{% endif %};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">
+            {% if course.free %}🎓{% else %}💎{% endif %}
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;">{{ course.name }}</div>
+            <div style="font-size:12px;color:#64748b;">{{ course.platform }} • Skill: {{ course.skill }}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            {% if course.free %}
+              <span class="badge badge-success">FREE</span>
+            {% else %}
+              <span class="badge badge-warning">PAID</span>
+            {% endif %}
+            <a href="{{ course.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-arrow-up-right"></i>
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="card fade-up fade-up-1">
+      <div class="card-body">
+        <div class="empty-state">
+          <i class="bi bi-graph-up-arrow"></i>
+          <h5 style="font-family:'Syne',sans-serif;font-weight:700;">Run Your First Analysis</h5>
+          <p>Select a target career and enter your current skills to see how you match up and what you need to learn.</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>.course-item:hover { border-color: #2563eb !important; background: #f8fafc; }</style>
+{% endblock %}

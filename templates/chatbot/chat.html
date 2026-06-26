@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}AI Career Chatbot{% endblock %}
+{% block page_title %}AI Career <span>Chatbot</span>{% endblock %}
+{% block extra_css %}
+<style>
+  .page-content { padding: 28px 28px 0; }
+  .chat-container { height: calc(100vh - 160px); }
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="chat-container fade-up">
+  <!-- CHAT SIDEBAR -->
+  <div class="chat-sidebar">
+    <div class="chat-sidebar-header">
+      <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">Conversations</span>
+      <a href="{% url 'new_chat' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus"></i> New
+      </a>
+    </div>
+    <div style="padding:8px 0;overflow-y:auto;flex:1;">
+      {% if sessions %}
+        {% for session in sessions %}
+        <a href="{% url 'chatbot' %}?session={{ session.pk }}"
+           class="chat-session-item {% if current_session and current_session.pk == session.pk %}active{% endif %}">
+          <i class="bi bi-chat-text" style="font-size:14px;flex-shrink:0;"></i>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              {{ session.title|truncatechars:28 }}
+            </div>
+            <div style="font-size:11px;color:#94a3b8;">{{ session.updated_at|timesince }} ago</div>
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">
+          Start a new conversation
+        </div>
+      {% endif %}
+    </div>
+    <div style="padding:12px;border-top:1px solid #f1f5f9;">
+      <div style="background:#f0f9ff;border-radius:10px;padding:12px;font-size:12px;color:#0369a1;">
+        <strong>💡 Tip:</strong> Ask me about career paths, resume tips, interview prep, or salary negotiation!
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT MAIN -->
+  <div class="chat-main">
+    <!-- Header -->
+    <div style="padding:14px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:12px;background:#fafbff;">
+      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;">🤖</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">CareerAI Advisor</div>
+        <div style="font-size:11px;color:#10b981;display:flex;align-items:center;gap:4px;">
+          <span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block;"></span> Online
+        </div>
+      </div>
+      {% if current_session %}
+      <a href="{% url 'delete_chat' current_session.pk %}" class="btn btn-sm ms-auto" style="background:#fee2e2;color:#dc2626;border:none;" onclick="return confirm('Delete this conversation?')">
+        <i class="bi bi-trash"></i>
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chatMessages">
+      {% if not chat_messages %}
+      <div style="text-align:center;padding:40px 20px;color:#94a3b8;">
+        <div style="font-size:48px;margin-bottom:16px;">🧭</div>
+        <h5 style="font-family:'Syne',sans-serif;font-weight:700;color:#0f172a;">Hi {{ request.user.first_name|default:"there" }}! I'm CareerAI</h5>
+        <p style="font-size:14px;max-width:360px;margin:0 auto 20px;">Your personal AI career advisor. Ask me anything about your career journey!</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+          <button class="suggestion-btn" onclick="sendSuggestion(this)">💼 How do I switch to data science?</button>
+          <button class="suggestion-btn" onclick="sendSuggestion(this)">📄 How to improve my resume?</button>
+          <button class="suggestion-btn" onclick="sendSuggestion(this)">🎯 How to prepare for interviews?</button>
+          <button class="suggestion-btn" onclick="sendSuggestion(this)">💰 How to negotiate salary?</button>
+        </div>
+      </div>
+      {% endif %}
+
+      {% for msg in chat_messages %}
+      <div class="message {{ msg.role }}">
+        <div class="message-avatar">
+          {% if msg.role == 'user' %}
+            {{ request.user.first_name|first|upper|default:"U" }}
+          {% else %}
+            🤖
+          {% endif %}
+        </div>
+        <div>
+          <div class="message-bubble">{{ msg.content }}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;{% if msg.role == 'user' %}text-align:right;{% endif %}">
+            {{ msg.timestamp|date:"g:i A" }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div id="typingIndicator" style="display:none;" class="message assistant">
+        <div class="message-avatar">🤖</div>
+        <div class="message-bubble" style="padding:14px 16px;">
+          <div style="display:flex;gap:4px;">
+            <span style="width:8px;height:8px;background:#94a3b8;border-radius:50%;animation:bounce 1.2s infinite;"></span>
+            <span style="width:8px;height:8px;background:#94a3b8;border-radius:50%;animation:bounce 1.2s infinite 0.2s;"></span>
+            <span style="width:8px;height:8px;background:#94a3b8;border-radius:50%;animation:bounce 1.2s infinite 0.4s;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div class="chat-input-area">
+      <textarea id="chatInput" class="chat-input" placeholder="Ask anything about your career..." rows="1"
+        onkeydown="handleKeyDown(event)" oninput="autoResize(this)"></textarea>
+      <button class="chat-send-btn" id="sendBtn" onclick="sendMessage()">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+.suggestion-btn {
+  background: #f1f5f9; border: 1.5px solid #e2e8f0;
+  padding: 8px 16px; border-radius: 20px;
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all 0.2s; color: #334155;
+}
+.suggestion-btn:hover { background: #dbeafe; border-color: #2563eb; color: #2563eb; }
+</style>
+
+<script>
+const sessionId = {{ current_session.pk|default:"null" }};
+const csrfToken = '{{ csrf_token }}';
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function sendSuggestion(btn) {
+  document.getElementById('chatInput').value = btn.textContent.replace(/^[^ ]* /, '');
+  sendMessage();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const message = input.value.trim();
+  if (!message) return;
+
+  const sendBtn = document.getElementById('sendBtn');
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  // Clear welcome screen if present
+  const welcome = document.querySelector('.chat-messages > div[style*="text-align"]');
+  if (welcome) welcome.remove();
+
+  appendMessage('user', message);
+  showTyping(true);
+  scrollToBottom();
+
+  try {
+    const res = await fetch('/chatbot/api/chat/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+      body: JSON.stringify({ message, session_id: sessionId })
+    });
+    const data = await res.json();
+    showTyping(false);
+    if (data.reply) appendMessage('assistant', data.reply);
+    if (data.session_id && !sessionId) {
+      history.pushState({}, '', '/chatbot/?session=' + data.session_id);
+    }
+  } catch (e) {
+    showTyping(false);
+    appendMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+  }
+
+  sendBtn.disabled = false;
+  scrollToBottom();
+}
+
+function appendMessage(role, content) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  const initial = role === 'user' ? '{{ request.user.first_name|first|upper|default:"U" }}' : '🤖';
+  div.innerHTML = `
+    <div class="message-avatar">${initial}</div>
+    <div>
+      <div class="message-bubble">${content.replace(/\n/g, '<br>')}</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:4px;${role==='user'?'text-align:right;':''}">
+        ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+      </div>
+    </div>`;
+  container.insertBefore(div, document.getElementById('typingIndicator'));
+}
+
+function showTyping(show) {
+  document.getElementById('typingIndicator').style.display = show ? 'flex' : 'none';
+}
+
+function scrollToBottom() {
+  const c = document.getElementById('chatMessages');
+  setTimeout(() => c.scrollTop = c.scrollHeight, 50);
+}
+
+// Scroll to bottom on load
+scrollToBottom();
+</script>
+{% endblock %}

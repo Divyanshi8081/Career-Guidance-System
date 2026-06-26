@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}My Resumes{% endblock %}
+{% block page_title %}My <span>Resumes</span>{% endblock %}
+{% block content %}
+<div class="page-header fade-up">
+  <h2>Resume History</h2>
+  <a href="{% url 'upload_resume' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Upload New Resume</a>
+</div>
+<div class="card fade-up">
+  <div class="card-body" style="padding:0;">
+    {% if resumes %}
+    <table style="width:100%;border-collapse:collapse;">
+      <thead style="background:#f8fafc;">
+        <tr>
+          <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;">File</th>
+          <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;">ATS Score</th>
+          <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;">Skills</th>
+          <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;">Education</th>
+          <th style="padding:14px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;">Uploaded</th>
+          <th style="padding:14px 20px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in resumes %}
+        <tr style="border-top:1px solid #f1f5f9;">
+          <td style="padding:14px 20px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:8px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:16px;">📄</div>
+              <span style="font-weight:600;font-size:14px;">{{ r.original_filename|truncatechars:25 }}</span>
+            </div>
+          </td>
+          <td style="padding:14px 20px;">
+            <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:{% if r.ats_score >= 70 %}#10b981{% elif r.ats_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ r.ats_score }}</span>
+            <span style="font-size:12px;color:#94a3b8;">/100</span>
+          </td>
+          <td style="padding:14px 20px;"><span class="badge badge-primary">{{ r.skills_found|length }} skills</span></td>
+          <td style="padding:14px 20px;font-size:13px;color:#64748b;">{{ r.education_level|default:"—" }}</td>
+          <td style="padding:14px 20px;font-size:13px;color:#64748b;">{{ r.uploaded_at|date:"M d, Y" }}</td>
+          <td style="padding:14px 20px;">
+            <div style="display:flex;gap:8px;">
+              <a href="{% url 'resume_result' r.pk %}" class="btn btn-outline-primary btn-sm">View</a>
+              <form method="post" action="{% url 'delete_resume' r.pk %}" style="display:inline;" onsubmit="return confirm('Delete this resume?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:none;">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state" style="padding:48px;">
+      <i class="bi bi-file-earmark-x"></i>
+      <h5 style="font-family:'Syne',sans-serif;font-weight:700;">No Resumes Yet</h5>
+      <p>Upload your first resume to get started with AI analysis.</p>
+      <a href="{% url 'upload_resume' %}" class="btn btn-primary">Upload Resume</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

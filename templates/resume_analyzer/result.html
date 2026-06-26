@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Resume Analysis Results{% endblock %}
+{% block page_title %}Resume <span>Analysis Results</span>{% endblock %}
+{% block content %}
+
+<div class="page-header fade-up">
+  <div>
+    <h2>Resume Analysis Report</h2>
+    <p style="color:#64748b;font-size:14px;">{{ resume.original_filename }} • {{ resume.uploaded_at|date:"M d, Y" }}</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'upload_resume' %}" class="btn btn-light"><i class="bi bi-upload"></i> Upload New</a>
+  </div>
+</div>
+
+<!-- ATS SCORE HERO -->
+<div class="card mb-4 fade-up fade-up-1" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border:none;color:#fff;">
+  <div class="card-body" style="padding:32px;">
+    <div class="row align-items-center">
+      <div class="col-md-4 text-center">
+        <div style="position:relative;width:140px;height:140px;margin:0 auto;">
+          <svg viewBox="0 0 100 100" width="140" height="140" style="transform:rotate(-90deg);">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"/>
+            <circle cx="50" cy="50" r="40" fill="none"
+              stroke="{% if resume.ats_score >= 70 %}#10b981{% elif resume.ats_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %}"
+              stroke-width="10"
+              stroke-dasharray="{{ resume.ats_score }} 100"
+              stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+            <div style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:#fff;">{{ resume.ats_score }}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);">/ 100</div>
+          </div>
+        </div>
+        <div style="font-size:14px;font-weight:700;margin-top:8px;color:{% if resume.ats_score >= 70 %}#10b981{% elif resume.ats_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">
+          {{ resume.get_ats_label }}
+        </div>
+      </div>
+      <div class="col-md-8">
+        <h3 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:16px;">ATS Compatibility Score</h3>
+        <div class="row g-3">
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#10b981;">{{ resume.skills_found|length }}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);">Skills Found</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#60a5fa;">{{ resume.word_count }}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);">Words</div>
+            </div>
+          </div>
+          {% if resume.education_level %}
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-size:13px;font-weight:700;color:#a78bfa;">{{ resume.education_level }}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);">Education</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if resume.experience_years %}
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#f59e0b;">{{ resume.experience_years }}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);">Years Exp.</div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- SKILLS FOUND -->
+  <div class="col-lg-5 fade-up fade-up-2">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>🛠️ Skills Identified ({{ resume.skills_found|length }})</h5>
+      </div>
+      <div class="card-body">
+        {% if resume.skills_found %}
+          {% for skill in resume.skills_found %}
+            <span class="skill-tag">{{ skill }}</span>
+          {% endfor %}
+        {% else %}
+          <p style="color:#94a3b8;font-size:13px;">No specific skills detected. Make sure your resume has a clear Skills section.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- STRENGTHS & IMPROVEMENTS -->
+    {% if feedback_data.strengths %}
+    <div class="card mb-4">
+      <div class="card-header"><h6>✅ Strengths</h6></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+        {% for s in feedback_data.strengths %}
+          <div style="font-size:13px;color:#065f46;background:#d1fae5;padding:8px 12px;border-radius:8px;">{{ s }}</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if feedback_data.improvements %}
+    <div class="card">
+      <div class="card-header"><h6>⚠️ Areas to Improve</h6></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+        {% for tip in feedback_data.improvements %}
+          <div style="font-size:13px;color:#92400e;background:#fef3c7;padding:8px 12px;border-radius:8px;">{{ tip }}</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- AI FEEDBACK -->
+  <div class="col-lg-7 fade-up fade-up-3">
+    <div class="card">
+      <div class="card-header">
+        <h5>🤖 AI-Powered Feedback</h5>
+        <span class="badge badge-purple">GPT Analysis</span>
+      </div>
+      <div class="card-body">
+        {% if ai_feedback %}
+        <div style="font-size:14px;line-height:1.8;color:#334155;white-space:pre-line;">{{ ai_feedback }}</div>
+        {% else %}
+        <div class="empty-state">
+          <i class="bi bi-robot"></i>
+          <p>Add your OpenAI API key in settings to get detailed AI feedback on your resume.</p>
+        </div>
+        {% endif %}
+        <div class="divider"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="{% url 'skill_gap' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-graph-up-arrow"></i> Check Skill Gap
+          </a>
+          <a href="{% url 'chatbot' %}" class="btn btn-light btn-sm">
+            <i class="bi bi-chat-dots"></i> Ask AI for Tips
+          </a>
+          <a href="{% url 'upload_resume' %}" class="btn btn-light btn-sm">
+            <i class="bi bi-arrow-repeat"></i> Upload New Version
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

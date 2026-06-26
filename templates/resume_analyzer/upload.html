@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block title %}Resume Analyzer{% endblock %}
+{% block page_title %}Resume <span>Analyzer</span>{% endblock %}
+{% block content %}
+
+<div class="page-header fade-up">
+  <div>
+    <h2>Resume Analyzer</h2>
+    <p style="color:#64748b;font-size:14px;margin-top:4px;">Get your ATS score, skill extraction, and AI-powered improvement tips</p>
+  </div>
+  {% if previous_resumes %}
+  <a href="{% url 'resume_list' %}" class="btn btn-light"><i class="bi bi-clock-history"></i> View History</a>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card fade-up fade-up-1">
+      <div class="card-header"><h5>📤 Upload Your Resume</h5></div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+          {% csrf_token %}
+          <div class="upload-zone" id="dropZone" onclick="document.getElementById('resumeFile').click()">
+            <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+            <h5 style="font-family:'Syne',sans-serif;font-weight:700;">Drop your resume here</h5>
+            <p style="color:#64748b;font-size:14px;margin-bottom:16px;">or click to browse files</p>
+            <span style="font-size:12px;color:#94a3b8;background:#f1f5f9;padding:4px 12px;border-radius:20px;">
+              Supports PDF, DOCX, TXT
+            </span>
+            <input type="file" name="resume" id="resumeFile" accept=".pdf,.docx,.txt" style="display:none;" onchange="handleFileSelect(event)">
+          </div>
+
+          <div id="filePreview" style="display:none;margin-top:16px;padding:16px;background:#f8fafc;border-radius:10px;border:1.5px solid #e2e8f0;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:10px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📄</div>
+              <div>
+                <div id="fileName" style="font-weight:700;font-size:14px;"></div>
+                <div id="fileSize" style="font-size:12px;color:#64748b;"></div>
+              </div>
+              <button type="button" onclick="clearFile()" style="margin-left:auto;background:none;border:none;color:#94a3b8;font-size:18px;cursor:pointer;">×</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 btn-lg mt-4" id="submitBtn" disabled>
+            <i class="bi bi-cpu"></i> Analyze Resume with AI
+          </button>
+        </form>
+
+        <!-- Loading state -->
+        <div id="loadingState" style="display:none;text-align:center;padding:32px;">
+          <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;"></div>
+          <h6 style="font-family:'Syne',sans-serif;">Analyzing your resume...</h6>
+          <p style="color:#64748b;font-size:13px;">Extracting skills, calculating ATS score, generating AI feedback</p>
+          <div class="progress mt-3" style="height:6px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%;background:linear-gradient(90deg,#2563eb,#7c3aed);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <!-- What we analyze -->
+    <div class="card fade-up fade-up-2">
+      <div class="card-header"><h5>🔍 What We Analyze</h5></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:38px;height:38px;border-radius:8px;background:#dbeafe;color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📊</div>
+          <div><div style="font-weight:700;font-size:13px;">ATS Score (0-100)</div><div style="font-size:12px;color:#64748b;">How well your resume passes automated screening</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:38px;height:38px;border-radius:8px;background:#d1fae5;color:#10b981;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🛠️</div>
+          <div><div style="font-weight:700;font-size:13px;">Skill Extraction</div><div style="font-size:12px;color:#64748b;">All technical and soft skills identified in your resume</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:38px;height:38px;border-radius:8px;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🤖</div>
+          <div><div style="font-weight:700;font-size:13px;">AI Feedback</div><div style="font-size:12px;color:#64748b;">Specific, actionable improvement recommendations</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:38px;height:38px;border-radius:8px;background:#fef3c7;color:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🎓</div>
+          <div><div style="font-weight:700;font-size:13px;">Education & Experience</div><div style="font-size:12px;color:#64748b;">Detected education level and years of experience</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATS Tips -->
+    <div class="card mt-4 fade-up fade-up-3">
+      <div class="card-header"><h6>💡 Quick ATS Tips</h6></div>
+      <div class="card-body" style="font-size:13px;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:8px;"><span style="color:#10b981;">✓</span><span>Use standard section headings</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#10b981;">✓</span><span>Include keywords from job descriptions</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#10b981;">✓</span><span>Add your LinkedIn & GitHub links</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#10b981;">✓</span><span>Quantify achievements with numbers</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#ef4444;">✗</span><span>Avoid tables, columns, and graphics</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#ef4444;">✗</span><span>Don't use images or special characters</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if previous_resumes %}
+<div class="card mt-4 fade-up">
+  <div class="card-header">
+    <h5>📋 Previous Analyses</h5>
+    <a href="{% url 'resume_list' %}" class="btn btn-light btn-sm">View All</a>
+  </div>
+  <div class="card-body" style="padding:0;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th style="padding:12px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">File</th>
+            <th style="padding:12px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">ATS Score</th>
+            <th style="padding:12px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Skills Found</th>
+            <th style="padding:12px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Date</th>
+            <th style="padding:12px 20px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in previous_resumes %}
+          <tr style="border-top:1px solid #f1f5f9;">
+            <td style="padding:12px 20px;font-size:14px;font-weight:600;">{{ r.original_filename|truncatechars:30 }}</td>
+            <td style="padding:12px 20px;">
+              <span style="font-weight:800;font-size:16px;color:{% if r.ats_score >= 70 %}#10b981{% elif r.ats_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ r.ats_score }}</span>
+              <span style="font-size:11px;color:#94a3b8;">/100</span>
+            </td>
+            <td style="padding:12px 20px;font-size:14px;">{{ r.skills_found|length }}</td>
+            <td style="padding:12px 20px;font-size:13px;color:#64748b;">{{ r.uploaded_at|timesince }} ago</td>
+            <td style="padding:12px 20px;"><a href="{% url 'resume_result' r.pk %}" class="btn btn-outline-primary btn-sm">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) showFile(file);
+}
+
+function showFile(file) {
+  const preview = document.getElementById('filePreview');
+  const submitBtn = document.getElementById('submitBtn');
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+  preview.style.display = 'block';
+  submitBtn.disabled = false;
+}
+
+function clearFile() {
+  document.getElementById('resumeFile').value = '';
+  document.getElementById('filePreview').style.display = 'none';
+  document.getElementById('submitBtn').disabled = true;
+}
+
+// Drag and drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('resumeFile').files = dt.files;
+    showFile(file);
+  }
+});
+
+document.getElementById('uploadForm').addEventListener('submit', function() {
+  document.querySelector('.card-body form').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'block';
+});
+</script>
+{% endblock %}

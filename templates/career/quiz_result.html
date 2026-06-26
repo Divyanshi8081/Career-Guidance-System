@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Assessment Results{% endblock %}
+{% block page_title %}Assessment Results{% endblock %}
+{% block nav_quiz %}active{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Top Career Card -->
+    <div class="col-12">
+        <div class="p-4 rounded-4" style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 60%,#a78bfa 100%);position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:rgba(255,255,255,0.07);border-radius:50%;"></div>
+            <div style="position:absolute;bottom:-60px;right:100px;width:150px;height:150px;background:rgba(255,255,255,0.05);border-radius:50%;"></div>
+            <div class="d-flex align-items-center gap-3 position-relative">
+                <div style="font-size:3rem;">🎯</div>
+                <div>
+                    <div style="color:rgba(255,255,255,0.75);font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Your Top Career Match</div>
+                    <h2 style="font-family:'Syne',sans-serif;font-weight:800;color:white;margin:2px 0;">
+                        {{ result.get_top_career }}
+                    </h2>
+                    <div style="color:rgba(255,255,255,0.7);font-size:0.875rem;">
+                        Based on your {{ result.answers|length }} responses • {{ result.created_at|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score Breakdown + Career Matches -->
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-bar-chart me-2" style="color:#6366f1;"></i>Aptitude Scores</div>
+            <div class="card-body p-4">
+                {% for category, pct in score_percentages.items %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-600 text-capitalize">{{ category }}</span>
+                        <span class="small fw-bold" style="color:#6366f1;">{{ pct }}%</span>
+                    </div>
+                    <div class="progress" style="height:8px;">
+                        <div class="progress-bar" style="width:{{ pct }}%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:20px;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Careers -->
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-trophy me-2" style="color:#f59e0b;"></i>Recommended Career Paths</div>
+            <div class="card-body p-3">
+                {% for career in career_details %}
+                <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background:#f8f9fc;border:1px solid #f0f0f8;">
+                    <div style="width:42px;height:42px;background:{{ career.color }}20;border-radius:12px;display:flex;align-items:center;justify-content:center;color:{{ career.color }};font-size:1.2rem;flex-shrink:0;">
+                        <i class="bi {{ career.icon }}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;">{{ career.name }}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">{{ career.description }}</div>
+                    </div>
+                    <div class="text-end">
+                        <div style="font-size:0.72rem;color:#10b981;font-weight:700;">↑ {{ career.growth }}</div>
+                        <div style="font-size:0.7rem;color:#6b7280;">growth</div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if not career_details %}
+                    {% for career in result.recommended_careers %}
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background:#f8f9fc;">
+                        <div style="font-size:1.5rem;">
+                            {% if forloop.first %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}⭐{% endif %}
+                        </div>
+                        <span style="font-weight:600;">{{ career }}</span>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Advice -->
+    {% if result.ai_advice %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-stars me-2" style="color:#8b5cf6;"></i>AI-Powered Career Analysis
+            </div>
+            <div class="card-body p-4">
+                <div style="font-size:0.9rem;line-height:1.8;color:#374151;" id="aiAdviceContent">
+                    {{ result.ai_advice|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="col-12">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'skill_gap' %}{% if result.recommended_careers %}?career={{ result.recommended_careers.0 }}{% endif %}" class="btn btn-primary">
+                <i class="bi bi-bar-chart-steps me-2"></i>Analyze Skill Gap for Top Career
+            </a>
+            <a href="{% url 'upload_resume' %}" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-person me-2"></i>Analyze My Resume
+            </a>
+            <a href="{% url 'quiz' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-repeat me-2"></i>Retake Quiz
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
