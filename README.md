@@ -1,6 +1,6 @@
 # 🎯 AI-Powered Career Guidance System
 
-> A full-stack web application built with **Django 4.2 and Python** that provides personalized career counseling through AI-powered assessment, resume analysis, skill gap detection, and real-time chatbot guidance — replacing expensive career counseling sessions with a free, intelligent web platform.
+> A full-stack web application built with **Django 4.2 and Python 3.0.1** that provides personalized career counseling through AI-powered assessment, resume analysis, skill gap detection, and real-time chatbot guidance — replacing expensive career counseling sessions with a free, intelligent web platform.
 
 ---
 
