@@ -18,6 +18,7 @@ Security
 Future Scope
 Author
 ---
+![Dashboard](screenshots/dashboard.png)
 
 ## ✅ Features
 
