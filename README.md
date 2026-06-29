@@ -344,6 +344,7 @@ chatbot_chatsession          chatbot_chatmessage
 > Add screenshots after running the project
 
 ```
+
 Login Page     → Dark themed with glassmorphism card
 Dashboard      → Purple banner, 4 stat cards, tool grid
 Quiz Page      → Step-by-step with progress dots
