@@ -18,7 +18,6 @@ Security
 Future Scope
 Author
 ---
-![Dashboard](screenshots/dashboard.png)
 
 ## ✅ Features
 
@@ -364,19 +363,8 @@ chatbot_chatsession          chatbot_chatmessage
 ![Chatbot](screenshots/AI.png)
 
 ### 🤖 Profile
-![profile](screenshots/profile)
+![profile](screenshots/profile.png)
 
-```
-
-Login Page     → Dark themed with glassmorphism card
-Dashboard      → Purple banner, 4 stat cards, tool grid
-Quiz Page      → Step-by-step with progress dots
-Quiz Result    → Score bars, career cards, AI advice
-Skill Gap      → Match percentage, skill badges, courses
-Resume Upload  → Drag & drop zone with file preview
-Resume Result  → ATS circular meter, skills, AI feedback
-Chatbot        → Real-time chat with typing animation
-Profile        → Card layout with completion progress bar
 ```
 
 ---
