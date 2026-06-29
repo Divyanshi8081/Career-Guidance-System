@@ -369,17 +369,6 @@ chatbot_chatsession          chatbot_chatmessage
 
 ---
 
-## 🔒 Security Features
-
-- ✅ **CSRF Protection** — All forms include Django CSRF tokens
-- ✅ **Password Hashing** — PBKDF2-SHA256 with 260,000 iterations
-- ✅ **Login Required** — All tools protected with @login_required
-- ✅ **Data Isolation** — Users can only access their own data
-- ✅ **File Validation** — Type (PDF/DOCX/TXT) and size (5MB max) checks
-- ✅ **SQL Injection Prevention** — Django ORM uses parameterized queries
-- ✅ **XSS Prevention** — Django templates auto-escape all variables
-- ✅ **Secret Management** — API keys stored in .env file never in code
-
 ---
 
 ## 🔮 Future Scope
