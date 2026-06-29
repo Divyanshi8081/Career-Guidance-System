@@ -342,7 +342,29 @@ chatbot_chatsession          chatbot_chatmessage
 
 ## 📸 Screenshots
 
-> Add screenshots after running the project
+### 🔐 Login Page
+![Login](screenshots/login.png)
+
+### 📝 Register Page
+![Register](screenshots/register.png)
+
+### 🎨 Career Assessment
+![careerAssessment](screenshots/assessment.png)
+
+### 📋 Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### 📊 Skill Gap Analyzer
+![Skill Gap](screenshots/skillGap.png)
+
+### 📄 Resume Analyzer
+![Resume](screenshots/Resume_Analyzer.png)
+
+### 💬 AI Chatbot
+![Chatbot](screenshots/AI.png)
+
+### 🤖 Profile
+![profile](screenshots/profile)
 
 ```
 
